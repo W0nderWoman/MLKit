@@ -16,11 +16,26 @@
        android:layout_height="wrap_content"
        android:text="Capture"
        android:onClick="Capture"
-       android:layout_below="@id/imgv"/>
+       android:layout_below="@id/imgv"
+       android:layout_centerHorizontal="true"/>
+   <Button
+       android:id="@+id/btext"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:text="Detect Text"
+       android:layout_below="@id/capture"
+       android:onClick="detectText"/>
+   <Button
+       android:id="@+id/bface"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:text="Detect Face"
+       android:layout_below="@id/btext"
+       android:onClick="detectFace"/>
    <ScrollView
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_below="@id/capture">
+       android:layout_below="@id/bface">
    <TextView
        android:id="@+id/result"
        android:layout_width="match_parent"

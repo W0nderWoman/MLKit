@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -17,8 +18,13 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
+import com.google.firebase.ml.vision.face.FirebaseVisionFace;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
+import com.google.firebase.ml.vision.face.FirebaseVisionFaceLandmark;
 import com.google.firebase.ml.vision.text.FirebaseVisionText;
 import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer;
 
@@ -72,11 +78,10 @@ public class MainActivity extends AppCompatActivity {
         if(requestCode==CAMERA_REQUEST && resultCode==Activity.RESULT_OK){
             pic=(Bitmap) data.getExtras().get("data");
             imgv.setImageBitmap(pic);
-            displayInfo();
         }
     }
 
-    public void displayInfo(){
+    public void detectText(View view){
         FirebaseVisionImage image=FirebaseVisionImage.fromBitmap(pic);
         FirebaseVisionTextRecognizer rec=FirebaseVision.getInstance().getOnDeviceTextRecognizer();
         rec.processImage(image)
@@ -103,6 +108,43 @@ public class MainActivity extends AppCompatActivity {
         for(FirebaseVisionText.TextBlock blk:block){
             String text=blk.getText();
             result.setText(text+"\n");
+        }
+    }
+
+    public void detectFace(View view){
+        FirebaseVisionFaceDetectorOptions options=new FirebaseVisionFaceDetectorOptions.Builder()
+                .setPerformanceMode(FirebaseVisionFaceDetectorOptions.ACCURATE)
+                .setLandmarkMode(FirebaseVisionFaceDetectorOptions.ALL_LANDMARKS)
+                .setContourMode(FirebaseVisionFaceDetectorOptions.ALL_CONTOURS)
+                .setClassificationMode(FirebaseVisionFaceDetectorOptions.ALL_CLASSIFICATIONS)
+                .build();
+
+        FirebaseVisionImage image=FirebaseVisionImage.fromBitmap(pic);
+        FirebaseVisionFaceDetector det=FirebaseVision.getInstance().getVisionFaceDetector(options);
+        Task<List<FirebaseVisionFace>> res=
+                det.detectInImage(image)
+                .addOnSuccessListener(new OnSuccessListener<List<FirebaseVisionFace>>() {
+                    @Override
+                    public void onSuccess(List<FirebaseVisionFace> firebaseVisionFaces) {
+                        processFace(firebaseVisionFaces);
+                    }
+                });
+    }
+
+    private void processFace(List<FirebaseVisionFace> faces){
+        for(FirebaseVisionFace face:faces){
+            Rect bounds=face.getBoundingBox();
+            float rotY=face.getHeadEulerAngleY();
+            float rotz=face.getHeadEulerAngleZ();
+
+            if (face.getSmilingProbability() != FirebaseVisionFace.UNCOMPUTED_PROBABILITY) {
+                float smileProb = face.getSmilingProbability();
+                result.append("Smiling : "+smileProb);
+            }
+            if (face.getRightEyeOpenProbability() != FirebaseVisionFace.UNCOMPUTED_PROBABILITY) {
+                float rightEyeOpenProb = face.getRightEyeOpenProbability();
+                result.append("Roight eye open : "+rightEyeOpenProb);
+            }
         }
     }
 }
