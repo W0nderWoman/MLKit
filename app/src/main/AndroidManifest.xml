@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.gupta.mlkit">
 
-    <uses-feature android:name="android.hardware.camera"></uses-feature>
+    <uses-feature android:name="android.hardware.camera2"></uses-feature>
 
     <application
         android:allowBackup="true"
@@ -21,7 +21,7 @@
 
         <meta-data
             android:name="com.google.firebase.ml.vision.DEPENDENCIES"
-            android:value="ocr,face" />
+            android:value="ocr,face,label" />
     </application>
 
 </manifest>

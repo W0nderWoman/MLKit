@@ -25,6 +25,9 @@ import com.google.firebase.ml.vision.face.FirebaseVisionFace;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetector;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceDetectorOptions;
 import com.google.firebase.ml.vision.face.FirebaseVisionFaceLandmark;
+import com.google.firebase.ml.vision.label.FirebaseVisionLabel;
+import com.google.firebase.ml.vision.label.FirebaseVisionLabelDetector;
+import com.google.firebase.ml.vision.label.FirebaseVisionLabelDetectorOptions;
 import com.google.firebase.ml.vision.text.FirebaseVisionText;
 import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer;
 
@@ -132,6 +135,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void processFace(List<FirebaseVisionFace> faces){
+        if(faces.size()==0){
+            result.setText("no faces");
+            return;
+        }
         for(FirebaseVisionFace face:faces){
             Rect bounds=face.getBoundingBox();
             float rotY=face.getHeadEulerAngleY();
@@ -139,12 +146,42 @@ public class MainActivity extends AppCompatActivity {
 
             if (face.getSmilingProbability() != FirebaseVisionFace.UNCOMPUTED_PROBABILITY) {
                 float smileProb = face.getSmilingProbability();
-                result.append("Smiling : "+smileProb);
+                result.setText("Smiling : "+smileProb);
             }
             if (face.getRightEyeOpenProbability() != FirebaseVisionFace.UNCOMPUTED_PROBABILITY) {
                 float rightEyeOpenProb = face.getRightEyeOpenProbability();
                 result.append("Roight eye open : "+rightEyeOpenProb);
             }
+        }
+    }
+
+    public void detectLabel(View view){
+        FirebaseVisionLabelDetectorOptions options=new FirebaseVisionLabelDetectorOptions.Builder()
+                .setConfidenceThreshold(0.8f)
+                .build();
+
+        FirebaseVisionImage image=FirebaseVisionImage.fromBitmap(pic);
+        FirebaseVisionLabelDetector det=FirebaseVision.getInstance().getVisionLabelDetector(options);
+        Task<List<FirebaseVisionLabel>> labels=
+                det.detectInImage(image)
+                .addOnSuccessListener(new OnSuccessListener<List<FirebaseVisionLabel>>() {
+                    @Override
+                    public void onSuccess(List<FirebaseVisionLabel> firebaseVisionLabels) {
+                        processLabel(firebaseVisionLabels);
+                    }
+                });
+    }
+
+    private void processLabel(List<FirebaseVisionLabel> lbls){
+        if(lbls.size()==0){
+            result.setText("no labels");
+            return;
+        }
+        for(FirebaseVisionLabel lbl:lbls){
+            String text=lbl.getLabel();
+            String id=lbl.getEntityId();
+            float conf=lbl.getConfidence();
+            result.append("Label : "+text+" ID : "+id+" Confidence : "+conf+"\n");
         }
     }
 }

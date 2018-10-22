@@ -32,10 +32,17 @@
        android:text="Detect Face"
        android:layout_below="@id/btext"
        android:onClick="detectFace"/>
+   <Button
+       android:id="@+id/blabel"
+       android:layout_width="match_parent"
+       android:layout_height="wrap_content"
+       android:text="Detect Label"
+       android:layout_below="@id/bface"
+       android:onClick="detectLabel"/>
    <ScrollView
        android:layout_width="match_parent"
        android:layout_height="wrap_content"
-       android:layout_below="@id/bface">
+       android:layout_below="@id/blabel">
    <TextView
        android:id="@+id/result"
        android:layout_width="match_parent"
