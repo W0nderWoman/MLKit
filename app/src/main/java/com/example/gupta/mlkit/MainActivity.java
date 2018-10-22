@@ -12,20 +12,34 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.ml.vision.FirebaseVision;
+import com.google.firebase.ml.vision.common.FirebaseVisionImage;
+import com.google.firebase.ml.vision.text.FirebaseVisionText;
+import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int MY_CAMERA_PERMISSION_CODE=100;
     private static final int CAMERA_REQUEST=1888;
 
+    Bitmap pic;
+
     ImageView imgv;
+    TextView result;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         imgv=findViewById(R.id.imgv);
+        result=findViewById(R.id.result);
     }
 
     public void Capture(View view){
@@ -56,8 +70,39 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
 
         if(requestCode==CAMERA_REQUEST && resultCode==Activity.RESULT_OK){
-            Bitmap pic=(Bitmap) data.getExtras().get("data");
+            pic=(Bitmap) data.getExtras().get("data");
             imgv.setImageBitmap(pic);
+            displayInfo();
+        }
+    }
+
+    public void displayInfo(){
+        FirebaseVisionImage image=FirebaseVisionImage.fromBitmap(pic);
+        FirebaseVisionTextRecognizer rec=FirebaseVision.getInstance().getOnDeviceTextRecognizer();
+        rec.processImage(image)
+                .addOnSuccessListener(new OnSuccessListener<FirebaseVisionText>() {
+                    @Override
+                    public void onSuccess(FirebaseVisionText firebaseVisionText) {
+                        processTxt(firebaseVisionText);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Toast.makeText(MainActivity.this,e.getMessage(),Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private void processTxt(FirebaseVisionText txt){
+        List<FirebaseVisionText.TextBlock> block=txt.getTextBlocks();
+        if(block.size()==0) {
+            result.setText("no text");
+            return;
+        }
+        for(FirebaseVisionText.TextBlock blk:block){
+            String text=blk.getText();
+            result.setText(text+"\n");
         }
     }
 }
